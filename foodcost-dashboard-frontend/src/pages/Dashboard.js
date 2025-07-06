@@ -11,11 +11,6 @@ import {
   TableRow
 } from '@mui/material';
 import {
-  fetchOrders,
-  fetchIngredients,
-  fetchFoodCosts
-} from '../api';
-import {
   BarChart,
   Bar,
   XAxis,
@@ -25,6 +20,7 @@ import {
 } from 'recharts';
 
 import { fetchOrders, fetchIngredients, fetchFoodCosts, fetchProductMargin } from '../api';
+
 
 
 export default function Dashboard() {
