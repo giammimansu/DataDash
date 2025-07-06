@@ -13,7 +13,7 @@ import {
   exportRecipes,
   exportInventory,
   exportRiders
-} from '../api';
+} from '../api/api';
 
 export default function ImportCSV() {
   const [ordersFile, setOrdersFile] = useState(null);

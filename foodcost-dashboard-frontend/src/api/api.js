@@ -60,6 +60,27 @@ export function exportRecipes() {
 }
 
 // INVENTORY
+export function fetchInventory() {
+  return api.get('/inventory/');     // endpoint JSON che restituisce [{ ingredient, quantity }, …]
+}
+
+// RIDERS
+export function fetchRiders() {
+  return api.get('/riders/');        // endpoint JSON che restituisce lista rider
+}
+
+// PERFORMANCE RIDER
+export function fetchRiderPerformance() {
+  return api.get('/riders/performance/');  // endpoint JSON che restituisce ad es. [{ rider, avgTime, deliveries }, …]
+}
+
+
+// PRODUCT MARGIN
+export function fetchProductMargin() {
+  return api.get('/products/margine-lordo/');
+}
+
+// INVENTORY IMPORT / EXPORT
 export function importInventory(file) {
   const data = new FormData();
   data.append('file', file);
@@ -71,7 +92,7 @@ export function exportInventory() {
   return api.get('/inventory/export-csv/', { responseType: 'blob' });
 }
 
-// RIDERS
+// RIDERS IMPORT / EXPORT
 export function importRiders(file) {
   const data = new FormData();
   data.append('file', file);
@@ -82,8 +103,3 @@ export function importRiders(file) {
 export function exportRiders() {
   return api.get('/riders/export-csv/', { responseType: 'blob' });
 }
-
-
-// Margine lordo per prodotto
-export const fetchProductMargin = () =>
-  api.get('/products/margine-lordo/');

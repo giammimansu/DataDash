@@ -1,33 +1,28 @@
 // src/App.js
 import React from 'react';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
-import { AppBar, Toolbar, Button, Container } from '@mui/material';
-import ImportCSV from './pages/ImportCSV';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ThemeProvider } from '@mui/material/styles';
+import theme from './theme/customTheme';
+import AppLayout from './layout/AppLayout';
 import Dashboard from './pages/Dashboard';
+import ImportCSV from './pages/ImportCSV';
+import InventoryPage from './pages/InventoryPage';
+import RidersPage from './pages/RidersPage';
 
-function App() {
+export default function App() {
   return (
-    <BrowserRouter>
-      <AppBar position="static">
-        <Toolbar>
-          <Button color="inherit" component={Link} to="/import">
-            Import CSV
-          </Button>
-          <Button color="inherit" component={Link} to="/dashboard">
-            Dashboard
-          </Button>
-        </Toolbar>
-      </AppBar>
-
-      <Container sx={{ mt: 4 }}>
+    <ThemeProvider theme={theme}>
+      <BrowserRouter>
         <Routes>
-          <Route path="/import" element={<ImportCSV />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="*" element={<ImportCSV />} />
+          {/* AppLayout contiene AppBar, Drawer e Outlet */}
+          <Route element={<AppLayout />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="import" element={<ImportCSV />} />
+            <Route path="inventory" element={<InventoryPage />} />
+            <Route path="riders" element={<RidersPage />} />
+          </Route>
         </Routes>
-      </Container>
-    </BrowserRouter>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
-
-export default App;

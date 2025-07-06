@@ -19,7 +19,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 
-import { fetchOrders, fetchIngredients, fetchFoodCosts, fetchProductMargin } from '../api';
+import { fetchOrders, fetchIngredients, fetchFoodCosts, fetchProductMargin } from '../api/api';
 
 
 

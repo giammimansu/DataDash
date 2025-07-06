@@ -1,3 +1,4 @@
+import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import AppLayout from './layout/AppLayout';
 import Dashboard from './pages/Dashboard';
@@ -19,3 +20,4 @@ export default function App() {
     </BrowserRouter>
   );
 }
+

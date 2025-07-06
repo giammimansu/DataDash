@@ -27,9 +27,9 @@ export default function AppLayout() {
 
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-    { text: 'Import', icon: <ImportExportIcon />, path: '/import' },
+    { text: 'Import',    icon: <ImportExportIcon />, path: '/import' },
     { text: 'Magazzino', icon: <InventoryIcon />, path: '/inventory' },
-    { text: 'Rider', icon: <DeliveryDiningIcon />, path: '/riders' },
+    { text: 'Rider',     icon: <DeliveryDiningIcon />, path: '/riders' },
   ];
 
   return (
@@ -40,7 +40,7 @@ export default function AppLayout() {
           <IconButton edge="start" color="inherit" onClick={toggleDrawer} sx={{ mr: 2 }}>
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div">DataDash</Typography>
+          <Typography variant="h6" noWrap>DataDash</Typography>
         </Toolbar>
       </AppBar>
       <Drawer
@@ -48,7 +48,6 @@ export default function AppLayout() {
         open={open}
         sx={{
           width: drawerWidth,
-          flexShrink: 0,
           '& .MuiDrawer-paper': { width: drawerWidth, boxSizing: 'border-box' },
         }}
       >
