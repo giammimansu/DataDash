@@ -12,24 +12,38 @@ Gestione CRUD, import/export CSV e dashboard analytics per:
 Tutto pronto per sviluppo locale e futura estensione multi-tenant/cloud.
 """
 
-from fastapi import FastAPI, Depends, HTTPException, UploadFile, File
-from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
-from sqlalchemy import func
-from collections import defaultdict
-from io import StringIO
-from datetime import datetime
+import os
 import csv
+from io import StringIO
+from datetime import datetime, timedelta
 
-from . import models, schemas, crud
-from .database import SessionLocal, engine
+from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from sqlalchemy.orm import Session
+from jose import jwt, JWTError
+from passlib.context import CryptContext
 
-# --------------------------
-# INIT FastAPI e CORS policy
-# --------------------------
+# importa la sessione e i metadata dal tuo database.py
+from .database import SessionLocal, engine, Base
+
+# importa i tuoi modelli SQLAlchemy e i tuoi schemi Pydantic
+from . import models, crud, schemas
+
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # carica .env in os.environ
+
+SECRET_KEY = os.getenv('SECRET_KEY', 'fallback_insecure_key')
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES', '60'))
+
+# crea tutte le tabelle (incl. users, ingredients, products, ecc.)
+Base.metadata.create_all(bind=engine)
+
+# inizializza FastAPI e CORS
 app = FastAPI(title="Food Cost Dashboard API", version="0.1")
-
-origins = ["http://localhost:3000"]  # frontend in dev su localhost:3000
+origins = ["http://localhost:5173"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -38,6 +52,116 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# --- Dependency per ottenere la sessione DB per ogni richiesta ---
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+# --- Impostazioni sicurezza / JWT ---
+SECRET_KEY = os.getenv('SECRET_KEY', 'supersecretkey')
+ALGORITHM = 'HS256'
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES', '60'))
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+
+def get_user_by_email(db: Session, email: str):
+    return db.query(models.User).filter(models.User.email == email).first()
+
+def verify_password(plain_pw: str, hashed_pw: str) -> bool:
+    return pwd_context.verify(plain_pw, hashed_pw)
+
+def authenticate_user(db: Session, email: str, password: str):
+    user = get_user_by_email(db, email)
+    if not user or not verify_password(password, user.hashed_password):
+        return None
+    return user
+
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+# ------ AUTH ENDPOINTS ------
+@app.post(
+    "/auth/register",
+    response_model=schemas.TokenResponse,
+    status_code=status.HTTP_201_CREATED
+)
+def register(
+    data: schemas.RegisterRequest,
+    db: Session = Depends(get_db)
+):
+    if get_user_by_email(db, data.email):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered"
+        )
+    # crea e salva utente
+    hashed = pwd_context.hash(data.password)
+    user = models.User(email=data.email, hashed_password=hashed)
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    token = create_access_token({"sub": user.email, "id": user.id})
+    return {"access_token": token, "token_type": "bearer"}
+
+@app.post(
+    "/auth/login",
+    response_model=schemas.TokenResponse
+)
+def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db)
+):
+    user = authenticate_user(db, form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    token = create_access_token({"sub": user.email, "id": user.id})
+    return {"access_token": token, "token_type": "bearer"}
+
+@app.get(
+    "/users/me",
+    response_model=schemas.UserInDB
+)
+def read_users_me(
+    token: str = Depends(oauth2_scheme)
+):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return {"id": payload.get("id"), "email": payload.get("sub")}
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+#############################  FINE LOGIN/REGISTRAZIONE UTENTI #############################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+##############################################################################
 # Crea tutte le tabelle al primo avvio (sviluppo)
 models.Base.metadata.create_all(bind=engine)
 

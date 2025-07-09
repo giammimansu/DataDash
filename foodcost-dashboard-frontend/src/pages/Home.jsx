@@ -1,16 +1,12 @@
 import React from 'react';
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
+import { Box, Typography } from '@mui/material';
 
 export default function Home() {
   return (
-    <AppBar position="static">
-      <Toolbar>
-        <Typography variant="h6" component="div">
-          DataDash
-        </Typography>
-      </Toolbar>
-    </AppBar>
+    <Box sx={{ p: 4, textAlign: 'center' }}>
+      <Typography variant="h4" gutterBottom>
+        In fase di costruzione
+      </Typography>
+    </Box>
   );
 }

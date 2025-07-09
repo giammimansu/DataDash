@@ -1,6 +1,34 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, Field , validator 
+import re
 from typing import Optional, List
 from datetime import datetime
+
+class RegisterRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(
+        ...,
+        min_length=8,
+        description="Minimo 8 caratteri, con almeno una maiuscola, una minuscola, un numero e un carattere speciale"
+    )
+
+    @validator('password')
+    def password_complexity(cls, v):
+        pattern = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&]).+$'
+        if not re.match(pattern, v):
+            raise ValueError(
+                'La password deve contenere almeno: una lettera maiuscola, una minuscola, un numero e un carattere speciale'
+            )
+        return v
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+class UserInDB(BaseModel):
+    id: int
+    email: EmailStr
+    class Config:
+        orm_mode = True
 
 # -----------------
 # Ingredient
@@ -14,9 +42,8 @@ class IngredientCreate(IngredientBase):
 
 class Ingredient(IngredientBase):
     id: int
-
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 # -----------------
 # Product
@@ -29,9 +56,8 @@ class ProductCreate(ProductBase):
 
 class Product(ProductBase):
     id: int
-
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 # -----------------
 # Recipe
@@ -46,9 +72,8 @@ class RecipeCreate(RecipeBase):
 
 class Recipe(RecipeBase):
     id: int
-
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 # -----------------
 # Order
@@ -65,9 +90,8 @@ class OrderCreate(OrderBase):
 
 class Order(OrderBase):
     id: int
-
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 # -----------------
 # InventoryMovement
@@ -83,9 +107,8 @@ class InventoryMovementCreate(InventoryMovementBase):
 
 class InventoryMovement(InventoryMovementBase):
     id: int
-
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 # -----------------
 # Rider
@@ -99,25 +122,22 @@ class RiderCreate(RiderBase):
 
 class Rider(RiderBase):
     id: int
-
     class Config:
-        from_attributes = True
+        orm_mode = True
 
-
-
-
+# -----------------
+# Dashboard DTOs
+# -----------------
 class ProductFoodCost(BaseModel):
     product_id: int
     food_cost: float
-
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 class ProductMargin(BaseModel):
     product_id: int
     avg_price: float
     food_cost: float
     margin: float
-
     class Config:
-        from_attributes = True
+        orm_mode = True
